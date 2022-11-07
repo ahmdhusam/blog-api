@@ -68,6 +68,21 @@ module.exports.getArticleSuggestions = async (req, res, next) => {
       },
     },
     {
+      $addFields: {
+        hasSameCategory: {
+          $anyElementTrue: [
+            {
+              $map: {
+                input: "$categories",
+                as: "category",
+                in: { $in: ["$$category", article.categories] },
+              },
+            },
+          ],
+        },
+      },
+    },
+    {
       $project: {
         _id: 0,
         id: "$_id",
@@ -85,34 +100,14 @@ module.exports.getArticleSuggestions = async (req, res, next) => {
               {
                 case: {
                   $and: [
-                    {
-                      $anyElementTrue: [
-                        {
-                          $map: {
-                            input: "$categories",
-                            as: "category",
-                            in: { $in: ["$$category", article.categories] },
-                          },
-                        },
-                      ],
-                    },
+                    "$hasSameCategory",
                     { $eq: ["$author", article.author] },
                   ],
                 },
                 then: 3,
               },
               {
-                case: {
-                  $anyElementTrue: [
-                    {
-                      $map: {
-                        input: "$categories",
-                        as: "category",
-                        in: { $in: ["$$category", article.categories] },
-                      },
-                    },
-                  ],
-                },
+                case: "$hasSameCategory",
                 then: 2,
               },
               {

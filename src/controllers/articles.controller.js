@@ -50,8 +50,11 @@ module.exports.getArticleSuggestions = async (req, res, next) => {
         $and: [
           {
             $or: [
-              { categories: article.categories, author: article.author },
-              { categories: article.categories },
+              {
+                categories: { $in: article.categories },
+                author: article.author,
+              },
+              { categories: { $in: article.categories } },
               { author: article.author },
             ],
           },
@@ -82,14 +85,38 @@ module.exports.getArticleSuggestions = async (req, res, next) => {
               {
                 case: {
                   $and: [
-                    { $eq: ["$categories", article.categories] },
+                    {
+                      $anyElementTrue: [
+                        {
+                          $map: {
+                            input: "$categories",
+                            as: "category",
+                            in: { $in: ["$$category", article.categories] },
+                          },
+                        },
+                      ],
+                    },
                     { $eq: ["$author", article.author] },
+                  ],
+                },
+                then: 3,
+              },
+              {
+                case: {
+                  $anyElementTrue: [
+                    {
+                      $map: {
+                        input: "$categories",
+                        as: "category",
+                        in: { $in: ["$$category", article.categories] },
+                      },
+                    },
                   ],
                 },
                 then: 2,
               },
               {
-                case: { $eq: ["$categories", article.categories] },
+                case: { $eq: ["$author", article.author] },
                 then: 1,
               },
             ],

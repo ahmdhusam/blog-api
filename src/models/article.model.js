@@ -7,7 +7,7 @@ const articleSchema = new Schema(
     author: { type: Types.ObjectId, required: true, ref: "User" },
     square_cover: { type: String, required: true },
     rectangle_cover: { type: String, required: true },
-    categories: { type: Types.ObjectId, required: true, ref: "Categories" },
+    categories: [{ type: Types.ObjectId, required: true, ref: "Categories" }],
     paragraphs: [paragraphSchema],
     readsCount: { type: Number, required: true },
     shareCount: { type: Number, required: true },
